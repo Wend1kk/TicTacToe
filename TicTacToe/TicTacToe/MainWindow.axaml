@@ -1,0 +1,430 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TicTacToe.MainWindow"
+        Title="Хрестики-Нулики"
+        Width="500" Height="800"
+        MinWidth="500" MinHeight="800"
+        MaxWidth="500" MaxHeight="800"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F172A"
+        CanResize="True">
+
+  <Window.Styles>
+    <Style Selector="Button">
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Padding" Value="0"/>
+    </Style>
+    
+    <Style Selector="Button.cell">
+      <Setter Property="Width"           Value="130"/>
+      <Setter Property="Height"          Value="122"/>
+      <Setter Property="FontSize"        Value="48"/>
+      <Setter Property="FontWeight"      Value="Bold"/>
+      <Setter Property="FontFamily"      Value="Space Grotesk,Segoe UI,Arial,sans-serif"/>
+      <Setter Property="Background"      Value="#1C1C2A"/>
+      <Setter Property="BorderBrush"     Value="#22223A"/>
+      <Setter Property="BorderThickness" Value="1.5"/>
+      <Setter Property="CornerRadius"    Value="14"/>
+      <Setter Property="Cursor"          Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment"   Value="Center"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}">
+              <TextBlock Text="{TemplateBinding Content}"
+                         FontSize="{TemplateBinding FontSize}"
+                         FontWeight="{TemplateBinding FontWeight}"
+                         FontFamily="{TemplateBinding FontFamily}"
+                         Foreground="{TemplateBinding Foreground}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"/>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background"  Duration="0:0:0.15"/>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+          <BrushTransition Property="Foreground"  Duration="0:0:0.15"/>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.cell:pointerover">
+      <Setter Property="Background"      Value="#101828"/>
+      <Setter Property="BorderBrush"     Value="#38BDF8"/>
+      <Setter Property="RenderTransform" Value="scale(1.04)"/>
+    </Style>
+    <Style Selector="Button.cell:pressed">
+      <Setter Property="RenderTransform" Value="scale(0.95)"/>
+    </Style>
+    <Style Selector="Button.cell.x-mark">
+      <Setter Property="Foreground"  Value="#60A5FA"/>
+      <Setter Property="Background"  Value="#0C1929"/>
+      <Setter Property="BorderBrush" Value="#1D3A5A"/>
+    </Style>
+    <Style Selector="Button.cell.o-mark">
+      <Setter Property="Foreground"  Value="#F472B6"/>
+      <Setter Property="Background"  Value="#1A0D18"/>
+      <Setter Property="BorderBrush" Value="#3D1A2E"/>
+    </Style>
+    <Style Selector="Button.cell.winner">
+      <Setter Property="Foreground"  Value="#34D399"/>
+      <Setter Property="Background"  Value="#0A1F14"/>
+      <Setter Property="BorderBrush" Value="#1A4030"/>
+    </Style>
+    
+    <Style Selector="Button.toggle">
+      <Setter Property="Height"          Value="42"/>
+      <Setter Property="FontSize"        Value="11"/>
+      <Setter Property="FontWeight"      Value="SemiBold"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Padding" Value="5,0"/>
+      <Setter Property="FontFamily"      Value="Space Grotesk,Segoe UI,Arial,sans-serif"/>
+      <Setter Property="Background"      Value="#1E293B"/>
+      <Setter Property="Foreground"      Value="#4A4A6A"/>
+      <Setter Property="BorderThickness" Value="1.5"/>
+      <Setter Property="BorderBrush"     Value="#252535"/>
+      <Setter Property="CornerRadius"    Value="12"/>
+      <Setter Property="Cursor"          Value="Hand"/>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background"  Duration="0:0:0.15"/>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+          <BrushTransition Property="Foreground"  Duration="0:0:0.15"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.toggle:pointerover">
+      <Setter Property="BorderBrush" Value="#38BDF8"/>
+      <Setter Property="Foreground"  Value="#38BDF8"/>
+    </Style>
+    <Style Selector="Button.toggle.active-blue">
+      <Setter Property="Background"  Value="#0E1B2E"/>
+      <Setter Property="BorderBrush" Value="#38BDF8"/>
+      <Setter Property="Foreground"  Value="#60A5FA"/>
+    </Style>
+    <Style Selector="Button.toggle.active-green">
+      <Setter Property="Background"  Value="#0A1F16"/>
+      <Setter Property="BorderBrush" Value="#34D399"/>
+      <Setter Property="Foreground"  Value="#34D399"/>
+    </Style>
+    <Style Selector="Button.toggle.active-yellow">
+      <Setter Property="Background"  Value="#1C1500"/>
+      <Setter Property="BorderBrush" Value="#FBBF24"/>
+      <Setter Property="Foreground"  Value="#FBBF24"/>
+    </Style>
+    <Style Selector="Button.toggle.active-red">
+      <Setter Property="Background"  Value="#200C0C"/>
+      <Setter Property="BorderBrush" Value="#F87171"/>
+      <Setter Property="Foreground"  Value="#F87171"/>
+    </Style>
+    
+    <Style Selector="Button.primary">
+      <Setter Property="Height"          Value="52"/>
+      <Setter Property="FontSize"        Value="14"/>
+      <Setter Property="FontWeight"      Value="Bold"/>
+      <Setter Property="FontFamily"      Value="Space Grotesk,Segoe UI,Arial,sans-serif"/>
+      <Setter Property="Foreground"      Value="#020617"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius"    Value="14"/>
+      <Setter Property="Cursor"          Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="Background">
+        <Setter.Value>
+          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Offset="0" Color="#38BDF8"/>
+            <GradientStop Offset="1" Color="#818CF8"/>
+          </LinearGradientBrush>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.primary:pointerover">
+      <Setter Property="Opacity"         Value="0.90"/>
+      <Setter Property="RenderTransform" Value="scale(1.02)"/>
+    </Style>
+    <Style Selector="Button.primary:pressed">
+      <Setter Property="RenderTransform" Value="scale(0.97)"/>
+    </Style>
+    
+    <Style Selector="Button.ghost">
+      <Setter Property="Height"          Value="70"/>
+      <Setter Property="FontSize"        Value="14"/>
+      <Setter Property="FontWeight"      Value="SemiBold"/>
+      <Setter Property="FontFamily"      Value="Space Grotesk,Segoe UI,Arial,sans-serif"/>
+      <Setter Property="Background"      Value="#38BDF8"/>
+      <Setter Property="Foreground"      Value="#4A4A6A"/>
+      <Setter Property="BorderThickness" Value="1.5"/>
+      <Setter Property="BorderBrush"     Value="#252535"/>
+      <Setter Property="CornerRadius"    Value="14"/>
+      <Setter Property="Cursor"          Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+          <BrushTransition Property="Foreground"  Duration="0:0:0.15"/>
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button.ghost:pointerover">
+      <Setter Property="BorderBrush" Value="#38BDF8"/>
+      <Setter Property="Foreground"  Value="#38BDF8"/>
+    </Style>
+    <Style Selector="Button.ghost:pressed">
+      <Setter Property="Opacity" Value="0.75"/>
+    </Style>
+
+  </Window.Styles>
+
+
+  <Grid>
+    
+    <Ellipse Width="260" Height="130"
+             HorizontalAlignment="Left" VerticalAlignment="Top"
+             Margin="-70,-70,0,0"
+             Fill="#38BDF8" Opacity="0.055"/>
+    
+    <Ellipse Width="220" Height="110"
+             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+             Margin="0,0,-50,-50"
+             Fill="#F472B6" Opacity="0.045"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                  HorizontalScrollBarVisibility="Disabled">
+      
+      <StackPanel Margin="22,20,22,20"
+                  Spacing="10"
+                  HorizontalAlignment="Center">
+        
+        
+      <StackPanel HorizontalAlignment="Center" Spacing="3" Margin="0,0,0,4">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="14">
+          <TextBlock Text="X"
+                     FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                     FontSize="34" FontWeight="Bold"
+                     Foreground="#60A5FA"/>
+          <TextBlock Text="✕"
+                     FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                     FontSize="18" Foreground="#94A3B8"
+                     VerticalAlignment="Center"/>
+          <TextBlock Text="O"
+                     FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                     FontSize="34" FontWeight="Bold"
+                     Foreground="#F472B6"/>
+        </StackPanel>
+        <TextBlock Text="Х Р Е С Т И К И   &amp;   Н У Л И К И"
+                   FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                   FontSize="10" FontWeight="SemiBold"
+                   Foreground="#94A3B8"
+                   HorizontalAlignment="Center"
+                   LetterSpacing="3"/>
+      </StackPanel>
+        
+      <Border Background="#14141F"
+              BorderBrush="#1E1E2E" BorderThickness="1"
+              CornerRadius="16" Padding="12,10">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Р Е Ж И М"
+                     FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                     FontSize="10" FontWeight="SemiBold"
+                     Foreground="#94A3B8"
+                     HorizontalAlignment="Center"
+                     LetterSpacing="3"/>
+          <Grid ColumnDefinitions="*,8,*">
+            <Button x:Name="BtnModePvP"
+                    Classes="toggle active-blue"
+                    Grid.Column="0"
+                    Content="👥 Гравець vs Гравець"
+                    Click="ModeButton_Click"/>
+            <Button x:Name="BtnModeBot"
+                    Classes="toggle"
+                    Grid.Column="2"
+                    Content="🤖 Гравець vs Бот"
+                    Click="ModeButton_Click"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+      
+      <Border x:Name="DifficultyPanel"
+              Background="#14141F"
+              BorderBrush="#1E1E2E" BorderThickness="1"
+              CornerRadius="16" Padding="12,10"
+              IsVisible="False">
+        <StackPanel Spacing="8">
+          <TextBlock Text="С К Л А Д Н І С Т Ь"
+                     FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                     FontSize="10" FontWeight="SemiBold"
+                     Foreground="#94A3B8"
+                     HorizontalAlignment="Center"
+                     LetterSpacing="3"/>
+          <Grid ColumnDefinitions="*,6,*,6,*">
+            <Button x:Name="BtnEasy"
+                    Classes="toggle active-green"
+                    Grid.Column="0"
+                    Content="😊 Легко"
+                    Click="DiffButton_Click"/>
+            <Button x:Name="BtnMedium"
+                    Classes="toggle"
+                    Grid.Column="2"
+                    Content="🤔 Середньо"
+                    Click="DiffButton_Click"/>
+            <Button x:Name="BtnHard"
+                    Classes="toggle"
+                    Grid.Column="4"
+                    Content="💀 Важко"
+                    Click="DiffButton_Click"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+      
+      <Border Background="#14141F"
+              BorderBrush="#1E1E2E" BorderThickness="1"
+              CornerRadius="16" Padding="8,14">
+        <Grid ColumnDefinitions="*,1,*,1,*">
+
+          <StackPanel Grid.Column="0" Spacing="1" HorizontalAlignment="Center">
+            <TextBlock x:Name="LabelLeft"
+                       Text="X"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="12" FontWeight="Bold"
+                       Foreground="#60A5FA"
+                       HorizontalAlignment="Center"
+                       LetterSpacing="2"/>
+            <TextBlock x:Name="ScoreX"
+                       Text="0"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="36" FontWeight="Bold"
+                       Foreground="#F0F0FF"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="перемог"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="10" Foreground="#94A3B8"
+                       HorizontalAlignment="Center"/>
+          </StackPanel>
+
+          <Rectangle Grid.Column="1" Width="1" Height="50"
+                     Fill="#1E1E2E" VerticalAlignment="Center"/>
+
+          <StackPanel Grid.Column="2" Spacing="1" HorizontalAlignment="Center">
+            <TextBlock Text="="
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="12" FontWeight="Bold"
+                       Foreground="#F0F0FF"
+                       HorizontalAlignment="Center"/>
+            <TextBlock x:Name="ScoreDraw"
+                       Text="0"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="36" FontWeight="Bold"
+                       Foreground="#F0F0FF"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="нічиїх"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="10" Foreground="#94A3B8"
+                       HorizontalAlignment="Center"/>
+          </StackPanel>
+
+          <Rectangle Grid.Column="3" Width="1" Height="50"
+                     Fill="#1E1E2E" VerticalAlignment="Center"/>
+
+          <StackPanel Grid.Column="4" Spacing="1" HorizontalAlignment="Center">
+            <TextBlock x:Name="LabelRight"
+                       Text="O"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="12" FontWeight="Bold"
+                       Foreground="#F472B6"
+                       HorizontalAlignment="Center"
+                       LetterSpacing="2"/>
+            <TextBlock x:Name="ScoreO"
+                       Text="0"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="36" FontWeight="Bold"
+                       Foreground="#F0F0FF"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="перемог"
+                       FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                       FontSize="10" Foreground="#94A3B8"
+                       HorizontalAlignment="Center"/>
+          </StackPanel>
+
+        </Grid>
+      </Border>
+      
+      <Border Background="#14141F"
+              BorderBrush="#1E1E2E" BorderThickness="1"
+              CornerRadius="12" Padding="20,12">
+        <TextBlock x:Name="StatusText"
+                   Text="⚡  Хід гравця X"
+                   FontFamily="Space Grotesk,Segoe UI,Arial,sans-serif"
+                   FontSize="13" FontWeight="SemiBold"
+                   Foreground="#60A5FA"
+                   HorizontalAlignment="Center"/>
+      </Border>
+      
+      <Border Background="#14141F"
+              BorderBrush="#1E1E2E" BorderThickness="1"
+              CornerRadius="20" Padding="12">
+        <Grid ColumnDefinitions="130,8,130,8,130"
+              RowDefinitions="122,8,122,8,122"
+              HorizontalAlignment="Center">
+
+          <Button x:Name="Btn00" Classes="cell"
+                  Grid.Row="0" Grid.Column="0"
+                  Content="" Click="Cell_Click"/>
+          <Button x:Name="Btn01" Classes="cell"
+                  Grid.Row="0" Grid.Column="2"
+                  Content="" Click="Cell_Click"/>
+          <Button x:Name="Btn02" Classes="cell"
+                  Grid.Row="0" Grid.Column="4"
+                  Content="" Click="Cell_Click"/>
+
+          <Button x:Name="Btn10" Classes="cell"
+                  Grid.Row="2" Grid.Column="0"
+                  Content="" Click="Cell_Click"/>
+          <Button x:Name="Btn11" Classes="cell"
+                  Grid.Row="2" Grid.Column="2"
+                  Content="" Click="Cell_Click"/>
+          <Button x:Name="Btn12" Classes="cell"
+                  Grid.Row="2" Grid.Column="4"
+                  Content="" Click="Cell_Click"/>
+
+          <Button x:Name="Btn20" Classes="cell"
+                  Grid.Row="4" Grid.Column="0"
+                  Content="" Click="Cell_Click"/>
+          <Button x:Name="Btn21" Classes="cell"
+                  Grid.Row="4" Grid.Column="2"
+                  Content="" Click="Cell_Click"/>
+          <Button x:Name="Btn22" Classes="cell"
+                  Grid.Row="4" Grid.Column="4"
+                  Content="" Click="Cell_Click"/>
+
+        </Grid>
+      </Border>
+      
+      <Grid ColumnDefinitions="*,10,150">
+        <Button x:Name="BtnNewGame"
+                Classes="primary"
+                Grid.Column="0"
+                Content="▶ НОВА ГРА"
+                Click="NewGame_Click"/>
+        <Button x:Name="BtnReset"
+                Classes="primary"
+                Grid.Column="2"
+                Content="Скинути рахунок"
+                Click="ResetScore_Click"/>
+      </Grid>
+
+    </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>
