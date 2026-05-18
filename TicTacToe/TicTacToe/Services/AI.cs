@@ -10,52 +10,70 @@ namespace TicTacToe.Services
         private readonly char _humanSymbol;
         private readonly Random _rng = new();
 
-        public Difficulty Level { get; set; } = Difficulty.Hard;
+        private readonly IMoveStrategy _strategy;
+
+        public Difficulty Level { get; set; }
 
         public AI(char aiSymbol, char humanSymbol, Difficulty level = Difficulty.Hard)
         {
             _aiSymbol = aiSymbol;
             _humanSymbol = humanSymbol;
             Level = level;
+            
+            _strategy = level switch
+            {
+                Difficulty.Easy => new EasyStrategy(),
+                Difficulty.Medium => new MediumStrategy(),
+                _ => new HardStrategy()
+            };
         }
 
         public int GetBestMove(char[,] board)
         {
-            return Level switch
-            {
-                Difficulty.Easy => GetEasyMove(board),
-                Difficulty.Medium => GetMediumMove(board),
-                _ => GetHardMove(board),
-            };
+            return _strategy.GetMove(this, board);
         }
 
-        private int GetEasyMove(char[,] board)
+        private interface IMoveStrategy
         {
-            if (_rng.NextDouble() < 0.30)
+            int GetMove(AI ai, char[,] board);
+        }
+
+        private class EasyStrategy : IMoveStrategy
+        {
+            public int GetMove(AI ai, char[,] board)
             {
-                int block = FindWinningMove(board, _humanSymbol);
-                if (block >= 0) return block;
+                if (ai._rng.NextDouble() < 0.30)
+                {
+                    int block = ai.FindWinningMove(board, ai._humanSymbol);
+                    if (block >= 0) return block;
+                }
+                return ai.RandomMove(board);
             }
-            return RandomMove(board);
         }
 
-        private int GetMediumMove(char[,] board)
+        private class MediumStrategy : IMoveStrategy
         {
-            int win = FindWinningMove(board, _aiSymbol);
-            if (win >= 0) return win;
+            public int GetMove(AI ai, char[,] board)
+            {
+                int win = ai.FindWinningMove(board, ai._aiSymbol);
+                if (win >= 0) return win;
 
-            int block = FindWinningMove(board, _humanSymbol);
-            if (block >= 0) return block;
+                int block = ai.FindWinningMove(board, ai._humanSymbol);
+                if (block >= 0) return block;
 
-            if (_rng.NextDouble() < 0.50)
-                return MinimaxMove(board, maxDepth: 3);
+                if (ai._rng.NextDouble() < 0.50)
+                    return ai.MinimaxMove(board, maxDepth: 3);
 
-            return RandomMove(board);
+                return ai.RandomMove(board);
+            }
         }
 
-        private int GetHardMove(char[,] board)
+        private class HardStrategy : IMoveStrategy
         {
-            return MinimaxMove(board, maxDepth: 9);
+            public int GetMove(AI ai, char[,] board)
+            {
+                return ai.MinimaxMove(board, maxDepth: 9);
+            }
         }
 
         private int MinimaxMove(char[,] board, int maxDepth)
