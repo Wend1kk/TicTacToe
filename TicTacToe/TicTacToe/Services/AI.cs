@@ -1,31 +1,89 @@
 using System;
+using System.Collections.Generic;
 
 namespace TicTacToe.Services
 {
+    public enum Difficulty { Easy, Medium, Hard }
+
+    // 1. Extracted decoupled Strategy Interface
+    public interface IMoveStrategy
+    {
+        int GetMove(AI ai, char[,] board);
+    }
+
+    // 2. Extracted Top-Level Concrete Strategies
+    public class EasyStrategy : IMoveStrategy
+    {
+        public int GetMove(AI ai, char[,] board)
+        {
+            if (ai.Rng.NextDouble() < 0.30)
+            {
+                int block = ai.FindWinningMove(board, ai.HumanSymbol);
+                if (block >= 0) return block;
+            }
+            return ai.RandomMove(board);
+        }
+    }
+
+    public class MediumStrategy : IMoveStrategy
+    {
+        public int GetMove(AI ai, char[,] board)
+        {
+            int win = ai.FindWinningMove(board, ai.AiSymbol);
+            if (win >= 0) return win;
+
+            int block = ai.FindWinningMove(board, ai.HumanSymbol);
+            if (block >= 0) return block;
+
+            if (ai.Rng.NextDouble() < 0.50)
+                return ai.MinimaxMove(board, maxDepth: 3);
+
+            return ai.RandomMove(board);
+        }
+    }
+
+    public class HardStrategy : IMoveStrategy
+    {
+        public int GetMove(AI ai, char[,] board)
+        {
+            return ai.MinimaxMove(board, maxDepth: 9);
+        }
+    }
+
+    // 3. Extracted Factory Registry to enforce Open/Closed Principle
+    public static class AIStrategyFactory
+    {
+        private static readonly Dictionary<Difficulty, Func<IMoveStrategy>> _registry = new()
+        {
+            { Difficulty.Easy, () => new EasyStrategy() },
+            { Difficulty.Medium, () => new MediumStrategy() },
+            { Difficulty.Hard, () => new HardStrategy() }
+        };
+
+        public static IMoveStrategy Create(Difficulty level)
+        {
+            return _registry.TryGetValue(level, out var factory) ? factory() : new HardStrategy();
+        }
+    }
+
+    // 4. Refactored Lean AI Orchestrator
     public class AI
     {
-        public enum Difficulty { Easy, Medium, Hard }
-
-        private readonly char _aiSymbol;
-        private readonly char _humanSymbol;
-        private readonly Random _rng = new();
+        public char AiSymbol { get; }
+        public char HumanSymbol { get; }
+        public Random Rng { get; } = new();
 
         private readonly IMoveStrategy _strategy;
-
         public Difficulty Level { get; set; }
 
         public AI(char aiSymbol, char humanSymbol, Difficulty level = Difficulty.Hard)
         {
-            _aiSymbol = aiSymbol;
-            _humanSymbol = humanSymbol;
+            AiSymbol = aiSymbol;
+            HumanSymbol = humanSymbol;
             Level = level;
             
-            _strategy = level switch
-            {
-                Difficulty.Easy => new EasyStrategy(),
-                Difficulty.Medium => new MediumStrategy(),
-                _ => new HardStrategy()
-            };
+            // Switch statement resolved dynamically via the Factory
+            _strategy = AIStrategyFactory.Create(level);
         }
 
         public int GetBestMove(char[,] board)
@@ -33,51 +91,138 @@ namespace TicTacToe.Services
             return _strategy.GetMove(this, board);
         }
 
-        private interface IMoveStrategy
+        public int MinimaxMove(char[,] board, int maxDepth)
         {
-            int GetMove(AI ai, char[,] board);
-        }
+            int bestScore = int.MinValue;
+            int bestMove = -1;
+            int[] order = ShuffledOrder();
 
-        private class EasyStrategy : IMoveStrategy
-        {
-            public int GetMove(AI ai, char[,] board)
+            foreach (int i in order)
             {
-                if (ai._rng.NextDouble() < 0.30)
+                int row = i / 3, col = i % 3;
+                if (board[row, col] != ' ') continue;
+
+                board[row, col] = AiSymbol;
+                int score = Minimax(board, 0, false, int.MinValue, int.MaxValue, maxDepth);
+                board[row, col] = ' ';
+
+                if (score > bestScore)
                 {
-                    int block = ai.FindWinningMove(board, ai._humanSymbol);
-                    if (block >= 0) return block;
+                    bestScore = score;
+                    bestMove = i;
                 }
-                return ai.RandomMove(board);
             }
+            return bestMove;
         }
 
-        private class MediumStrategy : IMoveStrategy
+        private int Minimax(char[,] board, int depth, bool isMaximizing, int alpha, int beta, int maxDepth)
         {
-            public int GetMove(AI ai, char[,] board)
+            char winner = CheckWinner(board);
+            if (winner == AiSymbol) return 10 - depth;
+            if (winner == HumanSymbol) return depth - 10;
+            if (IsBoardFull(board)) return 0;
+            if (depth >= maxDepth) return Evaluate(board);
+
+            if (isMaximizing)
             {
-                int win = ai.FindWinningMove(board, ai._aiSymbol);
-                if (win >= 0) return win;
-
-                int block = ai.FindWinningMove(board, ai._humanSymbol);
-                if (block >= 0) return block;
-
-                if (ai._rng.NextDouble() < 0.50)
-                    return ai.MinimaxMove(board, maxDepth: 3);
-
-                return ai.RandomMove(board);
+                int best = int.MinValue;
+                for (int i = 0; i < 9; i++)
+                {
+                    int r = i / 3, c = i % 3;
+                    if (board[r, c] != ' ') continue;
+                    board[r, c] = AiSymbol;
+                    best = Math.Max(best, Minimax(board, depth + 1, false, alpha, beta, maxDepth));
+                    board[r, c] = ' ';
+                    alpha = Math.Max(alpha, best);
+                    if (beta <= alpha) break;
+                }
+                return best;
             }
-        }
-
-        private class HardStrategy : IMoveStrategy
-        {
-            public int GetMove(AI ai, char[,] board)
+            else
             {
-                return ai.MinimaxMove(board, maxDepth: 9);
+                int best = int.MaxValue;
+                for (int i = 0; i < 9; i++)
+                {
+                    int r = i / 3, c = i % 3;
+                    if (board[r, c] != ' ') continue;
+                    board[r, c] = HumanSymbol;
+                    best = Math.Min(best, Minimax(board, depth + 1, true, alpha, beta, maxDepth));
+                    board[r, c] = ' ';
+                    beta = Math.Min(beta, best);
+                    if (beta <= alpha) break;
+                }
+                return best;
             }
         }
 
-        private int MinimaxMove(char[,] board, int maxDepth)
+        private int Evaluate(char[,] board)
         {
+            return CountOpenLines(board, AiSymbol) - CountOpenLines(board, HumanSymbol);
+        }
+
+        private int CountOpenLines(char[,] board, char symbol)
+        {
+            int count = 0;
+            int[][] lines = new int[][] {
+                new[] {0,1,2}, new[] {3,4,5}, new[] {6,7,8},
+                new[] {0,3,6}, new[] {1,4,7}, new[] {2,5,8},
+                new[] {0,4,8}, new[] {2,4,6}
+            };
+            char opp = symbol == AiSymbol ? HumanSymbol : AiSymbol;
+            foreach (var line in lines)
+            {
+                bool blocked = false;
+                int own = 0;
+                foreach (int idx in line)
+                {
+                    char cell = board[idx / 3, idx % 3];
+                    if (cell == opp) { blocked = true; break; }
+                    if (cell == symbol) own++;
+                }
+                if (!blocked) count += own + 1;
+            }
+            return count;
+        }
+
+        public int FindWinningMove(char[,] board, char symbol)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                int r = i / 3, c = i % 3;
+                if (board[r, c] != ' ') continue;
+                board[r, c] = symbol;
+                bool wins = CheckWinner(board) == symbol;
+                board[r, c] = ' ';
+                if (wins) return i;
+            }
+            return -1;
+        }
+
+        public int RandomMove(char[,] board)
+        {
+            int[] empty = new int[9];
+            int count = 0;
+            for (int i = 0; i < 9; i++)
+                if (board[i / 3, i % 3] == ' ') empty[count++] = i;
+            return count > 0 ? empty[Rng.Next(count)] : -1;
+        }
+
+        private int[] ShuffledOrder()
+        {
+            int[] order = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+            for (int i = 8; i > 0; i--)
+            {
+                int j = Rng.Next(i + 1);
+                (order[i], order[j]) = (order[j], order[i]);
+            }
+            return order;
+        }
+
+        private char CheckWinner(char[,] board)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                if (board[i,0] != ' ' && board[i,0] == board[i,1] && board[i,1] == board[i,2])
             int bestScore = int.MinValue;
             int bestMove = -1;
             int[] order = ShuffledOrder();
